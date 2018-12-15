@@ -8,6 +8,10 @@ import com.phatlabs.ninja.Router
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class Server(router: Router, host: String, port: Int)(implicit system: ActorSystem, ex: ExecutionContext, mat: ActorMaterializer) {
-  def bind(): Future[ServerBinding] = Http().bindAndHandle(router.route, host, port)
+class Server(router: Router, host: String, port: Int)(
+    implicit system: ActorSystem,
+    ex: ExecutionContext,
+    mat: ActorMaterializer) {
+  def bind(): Future[ServerBinding] =
+    Http().bindAndHandle(router.route, host, port)
 }
