@@ -1,8 +1,11 @@
 package com.phatlabs.ninja
 
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.Directives
+import scala.util.{Failure, Success}
+import akka.http.scaladsl.server.{Directives, Route}
+import com.phatlabs.ninja.directive.{TodoDirectives, ValidatorDirectives}
+import com.phatlabs.ninja.model.{ApiError, CreateTodo, UpdateTodo}
 import com.phatlabs.ninja.repository.TodoRepository
+import com.phatlabs.ninja.validation.{CreateTodoValidator, UpdateTodoValidator}
 
 trait Router {
   def route: Route
@@ -10,23 +13,53 @@ trait Router {
 
 class TodoRouter(todoRepository: TodoRepository)
     extends Router
-    with Directives {
-
+    with Directives
+    with TodoDirectives
+    with ValidatorDirectives {
   import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
   import io.circe.generic.auto._
 
   override def route: Route = pathPrefix("todos") {
     pathEndOrSingleSlash {
       get {
-        complete(todoRepository.all())
+        handleWithGeneric(todoRepository.all()) { todos =>
+          complete(todos)
+        }
+      } ~ post {
+        entity(as[CreateTodo]) { createTodo =>
+          validateWith(CreateTodoValidator)(createTodo) {
+            handleWithGeneric(todoRepository.save(createTodo)) { todos =>
+              complete(todos)
+            }
+          }
+        }
+      }
+    } ~ path(Segment) { id: String =>
+      put {
+        entity(as[UpdateTodo]) { updateTodo =>
+          validateWith(UpdateTodoValidator)(updateTodo) {
+            handle(todoRepository.update(id, updateTodo)) {
+              case TodoRepository.TodoNotFound(_) =>
+                ApiError.todoNotFound(id)
+              case _ =>
+                ApiError.generic
+            } { todo =>
+              complete(todo)
+            }
+          }
+        }
       }
     } ~ path("done") {
       get {
-        complete(todoRepository.done())
+        handleWithGeneric(todoRepository.done()) { todos =>
+          complete(todos)
+        }
       }
     } ~ path("pending") {
       get {
-        complete(todoRepository.pending())
+        handleWithGeneric(todoRepository.pending()) { todos =>
+          complete(todos)
+        }
       }
     }
   }

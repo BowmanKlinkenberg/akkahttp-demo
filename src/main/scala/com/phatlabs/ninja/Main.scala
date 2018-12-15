@@ -17,11 +17,7 @@ object Main extends App {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   import system.dispatcher
 
-  val todoRepository = new InMemoryTodoRepository(
-    Seq(
-      Todo("1", "Do thing 1", "Didn't do thing 1 yet, so do it", done = false),
-      Todo("2", "Do thing 2", "Thing 2 needs to be done.", done = true)
-    ))
+  val todoRepository = new InMemoryTodoRepository()
   val router = new TodoRouter(todoRepository)
   val server = new Server(router, host, port)
 
