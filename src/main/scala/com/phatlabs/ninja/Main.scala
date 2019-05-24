@@ -33,16 +33,3 @@ object Main extends App {
   Await.result(binding, 3.seconds)
 
 }
-
-object TestingHeaders extends App {
-
-  val splitGroups =
-    "CN=APP-xxxxx-exempt,OU=Application,OU=Groupings,DC=Corp,DC=test,DC=COM|CN=APP-testing-test,OU=Application,OU=Groupings,DC=Corp,DC=test,DC=COM"
-      .split('|')
-
-  val groups: List[String] = splitGroups.map { ldapName =>
-    ldapName.split(',')(0).split("=")(1)
-  }.toList
-
-  groups
-}
