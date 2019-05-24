@@ -5,6 +5,7 @@ import akka.stream.ActorMaterializer
 import com.phatlabs.ninja.model.Todo
 import com.phatlabs.ninja.repository.InMemoryTodoRepository
 
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Await
 import scala.util.{Failure, Success}
 
@@ -31,4 +32,17 @@ object Main extends App {
   import scala.concurrent.duration._
   Await.result(binding, 3.seconds)
 
+}
+
+object TestingHeaders extends App {
+
+  val splitGroups =
+    "CN=APP-xxxxx-exempt,OU=Application,OU=Groupings,DC=Corp,DC=test,DC=COM|CN=APP-testing-test,OU=Application,OU=Groupings,DC=Corp,DC=test,DC=COM"
+      .split('|')
+
+  val groups: List[String] = splitGroups.map { ldapName =>
+    ldapName.split(',')(0).split("=")(1)
+  }.toList
+
+  groups
 }
